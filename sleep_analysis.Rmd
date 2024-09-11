@@ -1,0 +1,85 @@
+---
+title: "Sleep Tracker"
+author: "Adam Smerigan"
+date: '2023-08-25'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+setwd("C:/Users/ajs8911/OneDrive - The Pennsylvania State University/Research/Sleep Tracking")
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(emmeans)
+library(car) 
+library(multcomp)
+# library(lubridate)
+```
+
+```{r}
+# Import data from Excel
+rawsleepdata <- read_excel("Sleep_Tracker.xlsx",col_names = TRUE)
+head(rawsleepdata)
+```
+
+```{r}
+# Manipulate the data to a usable form
+# select(rawsleepdata, BedTime, AwakeTime, inBed, awake, asleep, quality, deep)
+data <- rawsleepdata
+data[13:19] <- lapply(rawsleepdata[13:19], function(x) sub(".+? ", "", x))
+
+res <- hms(c(data[16]))
+hour(res)*60 + minute(res)
+data
+c(data[16])
+
+```
+```{r}
+lmod <-lm(Rating ~ Nofood+Noalcohol+Workout+Weekend+Away+Temp+XETime+Fan+Stretch ,data)
+summary(lmod)
+```
+
+```{r}
+# default graphics
+par(mfrow=c(2,2))
+plot(lmod)
+ 
+plot(residuals(lmod)~fitted(lmod),xlab="fitted",ylab = "Residual",main = "Residual Plot")
+```
+
+
+```{r}
+leveneTest(Rating ~ Fan ,data)
+```
+```{r}
+res_aov <- aov(Rating ~ Nofood+Noalcohol*Weekend+ ,data)
+summary(res_aov)
+```
+```{r}
+post_test <- glht(res_aov)
+
+summary(post_test)
+plot(post_test)
+```
+
+```{r}
+anova(lmod) # ANOVA table TYPE I -> THIS ONLY WORKS FOR BALANCED DESIGNS!
+```
+
+```{r}
+# If unbalanced, joint_tests
+joint_tests(lmod)
+```
+```{r}
+Anova(lmod,type = 3) # Notice the big "A" on "ANOVA"
+```
+
+```{r}
+
+```
+
